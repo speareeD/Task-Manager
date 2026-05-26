@@ -1,4 +1,3 @@
-import './App.css'
 import {useEffect, useState} from "react";
 import {fetchGames, type GameItem} from "./services/gameService.ts";
 
@@ -12,7 +11,7 @@ function App() {
         .catch((err) => setError(err.message));
   }, []);
 
-  if(error) return <p>Error loading data: {error}</p>
+  if(error) return <p className="bg-red-300">Error loading data: {error}</p>
 
   return (
     <div>

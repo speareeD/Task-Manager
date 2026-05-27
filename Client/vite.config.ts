@@ -1,7 +1,7 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -10,13 +10,13 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5241',
         changeOrigin: true,
-        secure: false
-      }
-    }
-  },
-  resolve: {
-      alias: {
-        '@a': path.resolve(__dirname, './src/assets'),
+        secure: false,
       },
     },
-})
+  },
+  resolve: {
+    alias: {
+      '@a': path.resolve(__dirname, './src/assets'),
+    },
+  },
+});

@@ -1,5 +1,5 @@
-import {useEffect, useState} from "react";
-import {fetchGames, type GameItem} from "./services/gameService.ts";
+import { useEffect, useState } from 'react';
+import { fetchGames, type GameItem } from './services/gameService.ts';
 
 function App() {
   const [games, setGames] = useState<GameItem[]>([]);
@@ -7,22 +7,24 @@ function App() {
 
   useEffect(() => {
     fetchGames()
-        .then((data) => setGames(data))
-        .catch((err) => setError(err.message));
+      .then((data) => setGames(data))
+      .catch((err) => setError(err.message));
   }, []);
 
-  if(error) return <p className="bg-red-300">Error loading data: {error}</p>
+  if (error) return <p className="bg-red-300">Error loading data: {error}</p>;
 
   return (
     <div>
       <h1>My Game Library</h1>
       <ul>
-        {games.map(game => (
-            <li key={game.id}>{game.title} ({game.genre})</li>
+        {games.map((game) => (
+          <li key={game.id}>
+            {game.title} ({game.genre})
+          </li>
         ))}
       </ul>
     </div>
   );
 }
 
-export default App
+export default App;

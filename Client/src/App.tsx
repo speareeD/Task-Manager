@@ -1,30 +1,15 @@
-import { useEffect, useState } from 'react';
-import { fetchGames, type GameItem } from './services/gameService.ts';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
-function App() {
-  const [games, setGames] = useState<GameItem[]>([]);
-  const [error, setError] = useState<string | null>(null);
+import Login from './pages/Login';
+import Register from './pages/Register';
 
-  useEffect(() => {
-    fetchGames()
-      .then((data) => setGames(data))
-      .catch((err) => setError(err.message));
-  }, []);
-
-  if (error) return <p className="bg-red-300">Error loading data: {error}</p>;
-
+export default function App() {
   return (
-    <div>
-      <h1>My Game Library</h1>
-      <ul>
-        {games.map((game) => (
-          <li key={game.id}>
-            {game.title} ({game.genre})
-          </li>
-        ))}
-      </ul>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;

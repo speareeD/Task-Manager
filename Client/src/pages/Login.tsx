@@ -4,6 +4,7 @@ import { login, saveToken } from '@services/authService';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
@@ -12,8 +13,9 @@ export default function Login() {
       const result = await login({ email, password });
       saveToken(result.token);
       alert('Login successful');
-    } catch (error) {
-      if (error instanceof Error) alert(error.message);
+      window.location.href = '/dashboard';
+    } catch (error: any) {
+      setError(error.message || "Something went wrong")
     }
   };
 

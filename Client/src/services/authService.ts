@@ -12,7 +12,7 @@ export interface RegisterRequest {
 }
 
 export async function login(data: LoginRequest) {
-  const response = await fetch(`${API_URL}/login`, {
+  const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ export async function login(data: LoginRequest) {
 }
 
 export async function register(data: RegisterRequest) {
-  const response = await fetch(`${API_URL}/register`, {
+  const response = await fetch(`${API_URL}/auth/register`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -52,8 +52,8 @@ export function saveToken(token: string) {
   localStorage.setItem('token', token);
 }
 
-export function getToken() {
-  localStorage.getItem('token');
+export function getToken() : string | null {
+  return localStorage.getItem('token');
 }
 
 export function logout() {

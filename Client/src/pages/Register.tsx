@@ -10,7 +10,7 @@ export default function Register() {
     e.preventDefault();
 
     try {
-      await register({ name, email, password });
+      const result = await register({ name, email, password });
       alert('Registration successful');
     } catch (error) {
       if (error instanceof Error) alert(error.message);

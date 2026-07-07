@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { login, saveToken } from '@services/authService';
+import { login, saveToken } from '@/services/authService';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -15,7 +15,7 @@ export default function Login() {
       alert('Login successful');
       window.location.href = '/dashboard';
     } catch (error: any) {
-      setError(error.message || "Something went wrong")
+      setError(error.message || 'Something went wrong');
     }
   };
 

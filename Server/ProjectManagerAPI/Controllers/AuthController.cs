@@ -1,4 +1,5 @@
 ﻿using BCrypt.Net;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -29,10 +30,11 @@ namespace ProjectManagerAPI.Controllers
             string storedHash = null;
             string userId = null;
             string userName = null;
+            bool isAdmin = false;
 
             using (SqlConnection conn = new SqlConnection(_connectionString))
             {
-                string query = "SELECT id, Name, PasswordHash FROM dbo.Users WHERE Email = @Email";
+                string query = "SELECT id, Name, PasswordHash, isAdmin FROM dbo.Users WHERE Email = @Email";
                 using (SqlCommand cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@Email", model.Email);
@@ -45,6 +47,7 @@ namespace ProjectManagerAPI.Controllers
                             userId = reader["Id"].ToString();
                             userName = reader["Name"].ToString();
                             storedHash = reader["PasswordHash"].ToString();
+                            isAdmin = (bool)reader["isAdmin"];
                         }
                     }
                 }
@@ -55,52 +58,153 @@ namespace ProjectManagerAPI.Controllers
                 return Unauthorized(new { message = "Invalid email or password" });
             }
 
-            var token = GenerateJwtToken(userId, userName, model.Email);
+            var token = GenerateJwtToken(userId, userName, model.Email, isAdmin);
 
-            return Ok(new { token = token, message = "Login successful" });
+            Response.Cookies.Append("auth", token,
+                new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    Expires = DateTime.UtcNow.AddHours(3)
+                }
+            );
+
+            return Ok(new
+            {
+                message = "Login successful"
+            });
 
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] RegisterModel model)
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
         {
-            // TODO: combine salt and password
-            string salt = Guid.NewGuid().ToString().Substring(0, 10);
-            string passwordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
+            Response.Cookies.Delete("auth");
 
-            using (SqlConnection conn = new SqlConnection(_connectionString))
+            return Ok(new
             {
-                string checkQuery = "SELECT COUNT(1) FROM dbo.Users WHERE Email = @Email";
-                using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+                message = "Logged out"
+            });
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost("invite")]
+        public async Task<IActionResult> Invite([FromBody] CreateUserModel model)
+        {
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string checkQuery =
+                "SELECT COUNT(1) FROM Users WHERE Email = @Email";
+            using (SqlCommand checkCmd = new SqlCommand(checkQuery, conn))
+            {
+                checkCmd.Parameters.AddWithValue("@Email", model.Email);
+                int exists = (int)await checkCmd.ExecuteScalarAsync();
+                if (exists > 0)
                 {
-                    checkCmd.Parameters.AddWithValue("@Email", model.Email);
-                    await conn.OpenAsync();
-                    int userExists = (int)await checkCmd.ExecuteScalarAsync();
-
-                    if (userExists > 0)
-                        return BadRequest(new { message = "Email is already registered." });
-                }
-
-                string insertQuery = "INSERT INTO dbo.Users (name, email, passwordHash, salt, isAdmin, createdAt, isActive) " +
-                    "VALUES (@Name, @Email, @PasswordHash, @Salt, @IsAdmin, @CreatedAt, @IsActive)";
-                using (SqlCommand insertCmd = new SqlCommand(insertQuery, conn))
-                {
-                    insertCmd.Parameters.AddWithValue("@Name", model.Name);
-                    insertCmd.Parameters.AddWithValue("@Email", model.Email);
-                    insertCmd.Parameters.AddWithValue("@PasswordHash", passwordHash);
-                    insertCmd.Parameters.AddWithValue("@Salt", salt);
-                    insertCmd.Parameters.AddWithValue("@IsAdmin", false);
-                    insertCmd.Parameters.AddWithValue("@CreatedAt", DateTime.UtcNow);
-                    insertCmd.Parameters.AddWithValue("@IsActive", true);
-
-                    await insertCmd.ExecuteNonQueryAsync();
+                    return BadRequest(new
+                    {
+                        message = "User already exists"
+                    });
                 }
             }
-
-            return Ok(new { message = "User registered successfully" });
+            string insertQuery = @"
+                INSERT INTO Users
+                    (Name, Email, PasswordHash, IsAdmin, CreatedAt, IsActive)
+                VALUES
+                    (@Name, @Email, NULL, @IsAdmin, @CreatedAt, 1)";
+            using (SqlCommand cmd = new SqlCommand(insertQuery, conn))
+            {
+                cmd.Parameters.AddWithValue("@Name", model.Name);
+                cmd.Parameters.AddWithValue("@Email", model.Email);
+                cmd.Parameters.AddWithValue("@IsAdmin", model.IsAdmin);
+                cmd.Parameters.AddWithValue("@CreatedAt", DateTime.UtcNow);
+                await cmd.ExecuteNonQueryAsync();
+            }
+            return Ok(new
+            {
+                message = "Invitation created",
+                url = $"http://localhost:5173/invitation/{Uri.EscapeDataString(model.Email)}"
+            });
         }
 
-        public string GenerateJwtToken(string userId, string name, string email)
+        [HttpGet("invitation/{email}")]
+        public async Task<IActionResult> CheckInvitation(string email)
+        {
+            email = Uri.UnescapeDataString(email);
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string query = @"
+                SELECT Name, Email
+                FROM Users
+                WHERE Email = @Email
+                AND PasswordHash IS NULL";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Email", email);
+            using SqlDataReader reader = await cmd.ExecuteReaderAsync();
+            if (!await reader.ReadAsync())
+            {
+                return NotFound(new
+                {
+                    message = "Invitation not found"
+                });
+            }
+            return Ok(new
+            {
+                name = reader["Name"].ToString(),
+                email = reader["Email"].ToString()
+            });
+        }
+
+        [HttpPost("activate")]
+        public async Task<IActionResult> Activate([FromBody] ActivateAccountModel model)
+        {
+            string passwordHash =
+                BCrypt.Net.BCrypt.HashPassword(model.Password);
+            using SqlConnection conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+            string query = @"
+                UPDATE Users
+                SET PasswordHash = @PasswordHash
+                WHERE Email = @Email
+                AND PasswordHash IS NULL";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue(
+                "@PasswordHash",
+                passwordHash
+            );
+            cmd.Parameters.AddWithValue(
+                "@Email",
+                model.Email
+            );
+            int rows = await cmd.ExecuteNonQueryAsync();
+            if (rows == 0)
+            {
+                return BadRequest(new
+                {
+                    message = "Invalid invitation"
+                });
+            }
+            return Ok(new
+            {
+                message = "Account activated"
+            });
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> Me()
+        {
+            return Ok(new
+            {
+                id = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                name = User.FindFirstValue(ClaimTypes.Name),
+                email = User.FindFirstValue(ClaimTypes.Email),
+                role = User.FindFirstValue(ClaimTypes.Role)
+            });
+        }
+
+        public string GenerateJwtToken(string userId, string name, string email, bool isAdmin)
         {
             var jwtSettings = _config.GetSection("Jwt");
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
@@ -111,6 +215,7 @@ namespace ProjectManagerAPI.Controllers
                 new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(ClaimTypes.Name, name),
                 new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.Role, isAdmin ? "Admin" : "User"),
                 new Claim("jti", Guid.NewGuid().ToString())
             };
 

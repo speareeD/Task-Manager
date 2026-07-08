@@ -1,12 +1,12 @@
 import { Navigate } from 'react-router-dom';
-import { getToken } from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function HomeRedirect() {
-  const token = getToken();
+  const { user, loading } = useAuth();
 
-  if (token) {
-    return <Navigate to="/dashboard" replace />;
+  if (loading) {
+    return <div>Loading...</div>;
   }
 
-  return <Navigate to="/login" replace />;
+  return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
 }

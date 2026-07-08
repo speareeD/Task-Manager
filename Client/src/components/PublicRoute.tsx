@@ -1,10 +1,14 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { getToken } from '@/services/authService';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function PublicRoute() {
-  const token = getToken();
+  const { user, loading } = useAuth();
 
-  if (token) {
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (user) {
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Data.SqlClient;
-using System.Data;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
@@ -46,11 +44,6 @@ builder.Services.AddAuthentication(options =>
         }
     };
 });
-
-
-builder.Services.AddScoped<IDbConnection>(sp =>
-    new SqlConnection(builder.Configuration.GetConnectionString("DefaultConnection"))
-    );
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

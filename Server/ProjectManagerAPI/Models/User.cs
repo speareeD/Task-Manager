@@ -12,7 +12,6 @@ namespace ProjectManagerAPI.Models
         [JsonPropertyName("email")]
         public string Email { get; set; }
 
-        public string Salt { get; set; }
         [JsonPropertyName("password")]
         public string PasswordHash { get; set; }
         public DateTime CreatedAt { get; set; }

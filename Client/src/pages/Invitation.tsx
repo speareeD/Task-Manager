@@ -57,8 +57,8 @@ export default function Invitation() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="w-full max-w-sm bg-white p-8 rounded-2xl shadow">
-        <h1 className="text-2xl font-semibold mb-4">Welcome {name}</h1>
+      <div className="w-full max-w-sm p-8 bg-white rounded-2xl shadow border">
+        <h1 className="text-2xl font-semibold text-center mb-4">Welcome {name}</h1>
 
         <p className="mb-4 text-gray-500">{userEmail}</p>
 

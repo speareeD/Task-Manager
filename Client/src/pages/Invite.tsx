@@ -46,9 +46,9 @@ export default function Invite() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
-        <h1 className="mb-8 text-center text-3xl font-bold text-gray-900">Invite user</h1>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow border p-8">
+        <h1 className="mb-8 text-center text-2xl font-bold text-gray-900">Invite user</h1>
 
         {error && (
           <div className="mb-5 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-600">

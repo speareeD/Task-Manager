@@ -1,3 +1,6 @@
+import { gql } from 'graphql-request';
+import { graphqlClient } from '@/lib/graphql';
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -14,95 +17,94 @@ export interface ActivateAccountRequest {
   password: string;
 }
 
+const LOGIN_MUTATION = gql`
+  mutation Login($input: LoginInput!) {
+    login(input: $input) {
+      token
+      expiresAt
+      user {
+        id
+        name
+        email
+        role
+      }
+    }
+  }
+`;
+
 export async function login(data: LoginRequest) {
-  const response = await fetch(`/api/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify(data),
+  const result = await graphqlClient.request(LOGIN_MUTATION, {
+    input: data,
   });
 
-  const result = await response.json();
+  localStorage.setItem('token', result.login.token);
 
-  if (!response.ok) {
-    throw new Error(result.message || 'Login failed');
-  }
-
-  return result;
+  return result.login;
 }
+
+const INVITE_MUTATION = gql`
+  mutation Invite($input: InviteInput!) {
+    invite(input: $input) {
+      message
+      url
+    }
+  }
+`;
 
 export async function register(data: CreateUserRequest) {
-  const response = await fetch(`/api/auth/invite`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  const token = localStorage.getItem('token');
+
+  const result = await graphqlClient.request(
+    INVITE_MUTATION,
+    {
+      input: data,
     },
-    credentials: 'include',
-    body: JSON.stringify(data),
-  });
+    {
+      Authorization: `Bearer ${token}`,
+    },
+  );
 
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || 'Register failed');
-  }
-
-  return result;
+  return result.invite;
 }
+
+const CHECK_INVITATION_QUERY = gql`
+  query Invitation($email: String!) {
+    invitation(email: $email) {
+      name
+      email
+    }
+  }
+`;
 
 export async function checkInvitation(email: string) {
-  const response = await fetch(`/api/auth/invitation/${encodeURIComponent(email)}`, {
-    credentials: 'include',
+  const result = await graphqlClient.request(CHECK_INVITATION_QUERY, {
+    email,
   });
 
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || 'Invitation invalid');
+  if (!result.invitation) {
+    throw new Error('Invitation invalid');
   }
 
-  return result;
+  return result.invitation;
 }
+
+const ACTIVATE_MUTATION = gql`
+  mutation Activate($input: ActivateInput!) {
+    activate(input: $input) {
+      message
+    }
+  }
+`;
 
 export async function activateAccount(data: ActivateAccountRequest) {
-  const response = await fetch(`/api/auth/activate`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include',
-    body: JSON.stringify(data),
+  const result = await graphqlClient.request(ACTIVATE_MUTATION, {
+    input: data,
   });
 
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || 'Activation failed');
-  }
-
-  return result;
+  return result.activate;
 }
 
-export async function me() {
-  const response = await fetch(`/api/auth/me`, {
-    method: 'GET',
-    credentials: 'include',
-  });
-
-  const result = await response.json();
-
-  if (!response.ok) {
-    throw new Error(result.message || 'Unauthorized');
-  }
-
-  return result;
-}
-
-export async function logout() {
-  await fetch(`/api/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  });
+export function logout() {
+  localStorage.removeItem('token');
+  graphqlClient.setHeader('Authorization', '');
 }

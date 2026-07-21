@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { me } from '@/services/authService';
+import { useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 
 export interface User {
   id: string;
@@ -8,28 +8,48 @@ export interface User {
   role: string;
 }
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+interface JwtPayload {
+  nameid: string;
+  name: string;
+  email: string;
+  role: string;
+  exp: number;
+}
 
-  useEffect(() => {
-    async function loadUser() {
-      try {
-        const result = await me();
-        setUser(result);
-      } catch {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
+function getUserFromToken(): User | null {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const payload = jwtDecode<JwtPayload>(token);
+
+    if (payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem('token');
+
+      return null;
     }
 
-    loadUser();
-  }, []);
+    return {
+      id: payload.nameid,
+      name: payload.name,
+      email: payload.email,
+      role: payload.role,
+    };
+  } catch {
+    localStorage.removeItem('token');
+
+    return null;
+  }
+}
+
+export function useAuth() {
+  const [user] = useState<User | null>(getUserFromToken);
 
   return {
     user,
-    loading,
     isAuthenticated: !!user,
   };
 }

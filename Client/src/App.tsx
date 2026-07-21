@@ -3,10 +3,10 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from '@/pages/Login';
 import Invite from '@/pages/Invite';
 import Dashboard from '@/pages/Dashboard';
-import HomeRedirect from '@/components/HomeRedirect';
 import NotFound from '@/pages/NotFound';
 import Invitation from '@/pages/Invitation';
 
+import HomeRedirect from '@/components/HomeRedirect';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import PublicRoute from '@/components/PublicRoute';
 import AdminRoute from '@/components/AdminRoute';

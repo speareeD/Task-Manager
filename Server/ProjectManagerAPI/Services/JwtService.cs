@@ -26,7 +26,7 @@ public class JwtService
                 new Claim(ClaimTypes.NameIdentifier, userId),
                 new Claim(ClaimTypes.Name, name),
                 new Claim(ClaimTypes.Email, email),
-                new Claim(ClaimTypes.Role, isAdmin ? "Admin" : "User"),
+                new Claim("isAdmin", isAdmin.ToString().ToLower()),
                 new Claim("jti", Guid.NewGuid().ToString())
             };
         var expires = DateTime.UtcNow.AddHours(3);

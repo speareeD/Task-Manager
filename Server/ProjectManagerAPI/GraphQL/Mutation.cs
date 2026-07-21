@@ -73,12 +73,12 @@ public class Mutation
                 Id = int.Parse(userId!),
                 Name = userName!,
                 Email = input.Email,
-                Role = isAdmin ? "Admin" : "User"
+                IsAdmin = isAdmin
             }
         };
     }
 
-    [Authorize(Roles = ["Admin"])]
+    [Authorize(Policy = "IsAdmin")]
     public async Task<InviteResponse> Invite(InviteInput input)
     {
         using SqlConnection conn = new(_connectionString);

@@ -38,15 +38,14 @@ builder.Services
 
                 ValidIssuer = jwtSettings["Issuer"],
                 ValidAudience = jwtSettings["Audience"],
-
                 IssuerSigningKey =
                     new SymmetricSecurityKey(key),
-
-                RoleClaimType = ClaimTypes.Role
             };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("IsAdmin", policy =>
+        policy.RequireClaim("isAdmin", "true"));
 
 builder.Services
     .AddGraphQLServer()

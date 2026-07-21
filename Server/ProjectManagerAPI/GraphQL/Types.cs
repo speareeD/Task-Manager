@@ -41,3 +41,24 @@ public class MessageResponse
 {
     public string Message { get; set; } = "";
 }
+
+public class InvitationResponse
+{
+    public string Name { get; set; } = "";
+    public string Email { get; set; } = "";
+}
+
+public class UserDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Email { get; set; } = "";
+    public bool IsAdmin { get; set; }
+}
+
+public class AdminStats
+{
+    public int Users { get; set; }
+    public int Projects { get; set; }
+    public int Tasks { get; set; }
+}

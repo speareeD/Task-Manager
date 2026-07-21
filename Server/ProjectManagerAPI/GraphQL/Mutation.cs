@@ -1,6 +1,7 @@
 ﻿using HotChocolate.Authorization;
 using Microsoft.Data.SqlClient;
 using ProjectManagerAPI.Services;
+using System.Security.Claims;
 
 namespace ProjectManagerAPI.GraphQL;
 
@@ -168,5 +169,26 @@ public class Mutation
         }
 
         return new MessageResponse { Message = "Account activated" };
+    }
+
+    [Authorize(Policy = "IsAdmin")]
+    public async Task<bool> DeleteUser(int id, ClaimsPrincipal claims)
+    {
+        int currentUser = int.Parse(claims.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        if (currentUser == id)
+            throw new GraphQLException("You cannot delete yourself.");
+
+        using SqlConnection conn = new(_connectionString);
+        await conn.OpenAsync();
+
+        const string sql = """
+            DELETE FROM Users
+            WHERE Id = @Id
+        """;
+
+        using SqlCommand cmd = new(sql, conn);
+        cmd.Parameters.AddWithValue("@Id", id);
+
+        return await cmd.ExecuteNonQueryAsync() > 0;
     }
 }

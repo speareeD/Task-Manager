@@ -1,12 +1,6 @@
 import { useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  isAdmin: boolean;
-}
+import type { User } from '@/types';
 
 interface JwtPayload {
   nameid: string;
@@ -33,7 +27,7 @@ function getUserFromToken(): User | null {
     }
 
     return {
-      id: payload.nameid,
+      id: Number(payload.nameid),
       name: payload.unique_name,
       email: payload.email,
       isAdmin: payload.isAdmin === 'true',

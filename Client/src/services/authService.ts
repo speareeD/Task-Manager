@@ -1,21 +1,6 @@
 import { gql } from 'graphql-request';
 import { graphqlClient } from '@/lib/graphql';
-
-export interface LoginRequest {
-  email: string;
-  password: string;
-}
-
-export interface CreateUserRequest {
-  name: string;
-  email: string;
-  isAdmin: boolean;
-}
-
-export interface ActivateAccountRequest {
-  email: string;
-  password: string;
-}
+import type { LoginRequest, CreateUserRequest, ActivateAccountRequest } from '@/types';
 
 const LOGIN_MUTATION = gql`
   mutation Login($input: LoginInput!) {

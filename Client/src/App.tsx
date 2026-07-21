@@ -1,10 +1,13 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 import Login from '@/pages/Login';
-import Invite from '@/pages/Invite';
+import Invitation from '@/pages/Invitation';
 import Dashboard from '@/pages/Dashboard';
 import NotFound from '@/pages/NotFound';
-import Invitation from '@/pages/Invitation';
+
+import AdminLayout from '@/pages/admin/AdminLayout';
+import AdminDashboard from '@/pages/admin/AdminDashboard';
+import Users from '@/pages/admin/Users';
 
 import HomeRedirect from '@/components/HomeRedirect';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -15,26 +18,27 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Root redirect */}
         <Route path="/" element={<HomeRedirect />} />
-        <Route path="/invitation/:email" element={<Invitation />} />
 
-        {/* Public routes */}
+        {/* public */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
+          <Route path="/invitation/:email" element={<Invitation />} />
         </Route>
 
-        {/* Admin routes */}
-        <Route element={<AdminRoute />}>
-          <Route path="/invite" element={<Invite />} />
-        </Route>
-
-        {/* Protected routes */}
+        {/* authenticated */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route index path="/dashboard" element={<Dashboard />} />
+
+          {/* admin */}
+          <Route element={<AdminRoute />}>
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<Users />} />
+            </Route>
+          </Route>
         </Route>
 
-        {/* Unknown routes */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>

@@ -18,13 +18,12 @@ export default function Dashboard() {
 
         <div className="flex items-center gap-6">
           <div className="text-sm text-gray-600">Hello, {user?.name}</div>
-
-          {user?.role === 'Admin' && (
+          {user?.isAdmin && (
             <button
-              onClick={() => navigate('/invite')}
+              onClick={() => navigate('/admin')}
               className="px-4 py-2 bg-black text-white rounded-lg"
             >
-              Invite User
+              Admin
             </button>
           )}
 
@@ -41,7 +40,7 @@ export default function Dashboard() {
           <div className="mt-4 text-gray-600">
             <p>Hello, {user?.name}</p>
             <p>{user?.email}</p>
-            <p>Role: {user?.role}</p>
+            <p>Admin: {user?.isAdmin ? 'Yes' : 'No'}</p>
           </div>
         </div>
       </main>

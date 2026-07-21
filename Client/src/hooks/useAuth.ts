@@ -12,7 +12,7 @@ interface JwtPayload {
   nameid: string;
   unique_name: string;
   email: string;
-  isAdmin: boolean;
+  isAdmin: string;
   exp: number;
 }
 
@@ -36,7 +36,7 @@ function getUserFromToken(): User | null {
       id: payload.nameid,
       name: payload.unique_name,
       email: payload.email,
-      isAdmin: payload.isAdmin,
+      isAdmin: payload.isAdmin === 'true',
     };
   } catch {
     localStorage.removeItem('token');

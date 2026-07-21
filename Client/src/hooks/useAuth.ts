@@ -5,14 +5,14 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: string;
+  isAdmin: boolean;
 }
 
 interface JwtPayload {
   nameid: string;
-  name: string;
+  unique_name: string;
   email: string;
-  role: string;
+  isAdmin: boolean;
   exp: number;
 }
 
@@ -34,9 +34,9 @@ function getUserFromToken(): User | null {
 
     return {
       id: payload.nameid,
-      name: payload.name,
+      name: payload.unique_name,
       email: payload.email,
-      role: payload.role,
+      isAdmin: payload.isAdmin,
     };
   } catch {
     localStorage.removeItem('token');

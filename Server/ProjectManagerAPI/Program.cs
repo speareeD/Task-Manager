@@ -2,6 +2,8 @@ using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using ProjectManagerAPI.GraphQL;
+using ProjectManagerAPI.GraphQL.Mutations;
+using ProjectManagerAPI.GraphQL.Queries;
 using ProjectManagerAPI.Services;
 using System.Security.Claims;
 using System.Text;
@@ -47,13 +49,22 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy("IsAdmin", policy =>
         policy.RequireClaim("isAdmin", "true"));
 
+builder.Services.AddAuthorization();
+
 builder.Services
     .AddGraphQLServer()
     .AddAuthorization()
     .AddQueryType<Query>()
-    .AddMutationType<Mutation>();
+        .AddTypeExtension<AuthQueries>()
+        .AddTypeExtension<UserQueries>()
+    .AddMutationType<Mutation>()
+        .AddTypeExtension<AuthMutations>()
+        .AddTypeExtension<UserMutations>();
 
-builder.Services.AddScoped<JwtService>();
+builder.Services
+    .AddScoped<JwtService>()
+    .AddScoped<AuthService>()
+    .AddScoped<UserService>();
 
 builder.Services.AddOpenApi();
 

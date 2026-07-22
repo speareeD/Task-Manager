@@ -2,7 +2,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { logout } from '@/services/authService';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function AdminLayout() {
+export default function AppLayout() {
   const navigate = useNavigate();
   const { user } = useAuth();
   function handleLogout() {
@@ -12,12 +12,11 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen flex bg-gray-100">
       <aside className="w-64 bg-black text-white flex flex-col">
-        <div className="p-6 text-2xl font-semibold">Admin</div>
+        <div className="p-6 text-2xl font-semibold">Task Manager</div>
 
         <nav className="flex-1 flex flex-col">
           <NavLink
-            to="/admin"
-            end
+            to="/dashboard"
             className={({ isActive }) =>
               `px-6 py-4 ${isActive ? 'bg-gray-800' : 'hover:bg-gray-900'}`
             }
@@ -26,12 +25,12 @@ export default function AdminLayout() {
           </NavLink>
 
           <NavLink
-            to="/admin/users"
+            to="/projects"
             className={({ isActive }) =>
               `px-6 py-4 ${isActive ? 'bg-gray-800' : 'hover:bg-gray-900'}`
             }
           >
-            Users
+            Projects
           </NavLink>
         </nav>
 

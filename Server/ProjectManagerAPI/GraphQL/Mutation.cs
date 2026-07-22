@@ -140,7 +140,7 @@ public class Mutation
         };
     }
 
-    public async Task<MessageResponse> Activate(ActivateInput input)
+    public async Task<LoginResponse> Activate(ActivateInput input)
     {
         string passwordHash = BCrypt.Net.BCrypt.HashPassword(input.Password);
 
@@ -168,7 +168,46 @@ public class Mutation
             );
         }
 
-        return new MessageResponse { Message = "Account activated" };
+        string userId;
+        string name;
+        bool isAdmin;
+
+        string selectQuery = """
+            SELECT Id, Name, IsAdmin
+            FROM Users
+            WHERE Email = @Email
+        """;
+
+        using SqlCommand select = new(selectQuery, conn);
+        select.Parameters.AddWithValue("@Email", input.Email);
+
+        using SqlDataReader reader = await select.ExecuteReaderAsync();
+
+        await reader.ReadAsync();
+
+        userId = reader["Id"].ToString()!;
+        name = reader["Name"].ToString()!;
+        isAdmin = (bool)reader["IsAdmin"];
+
+        string token = _jwt.GenerateToken(
+            userId,
+            name,
+            input.Email,
+            isAdmin
+        );
+
+        return new LoginResponse
+        {
+            Token = token,
+            ExpiresAt = DateTime.UtcNow.AddHours(3),
+            User = new UserInfo
+            {
+                Id = int.Parse(userId),
+                Name = name,
+                Email = input.Email,
+                IsAdmin = isAdmin
+            }
+        };
     }
 
     [Authorize(Policy = "IsAdmin")]

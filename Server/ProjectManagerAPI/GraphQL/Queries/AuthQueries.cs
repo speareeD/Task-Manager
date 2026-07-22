@@ -7,7 +7,7 @@ namespace ProjectManagerAPI.GraphQL.Queries;
 public class AuthQueries
 {
     public Task<InvitationResponse?> Invitation(
-        string input,
+        string email,
         [Service] AuthService auth)
-        => auth.Invitation(input);
+        => auth.Invitation(email);
 }

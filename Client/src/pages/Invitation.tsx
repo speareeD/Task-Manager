@@ -47,7 +47,7 @@ export default function Invitation() {
         password,
       });
 
-      navigate('/login');
+      navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {

@@ -75,16 +75,25 @@ export async function checkInvitation(email: string) {
 
 const ACTIVATE_MUTATION = gql`
   mutation Activate($input: ActivateInput!) {
-    activate(input: $input) {
-      message
+  activate(input: $input) {
+    token
+    expiresAt
+    user {
+      id
+      name
+      email
+      isAdmin
     }
   }
+}
 `;
 
 export async function activateAccount(data: ActivateAccountRequest) {
   const result = await graphqlClient.request(ACTIVATE_MUTATION, {
     input: data,
   });
+
+  localStorage.setItem("token", result.activate.token);
 
   return result.activate;
 }
